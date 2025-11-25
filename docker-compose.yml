@@ -1,0 +1,84 @@
+
+
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: food_ordering
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    depends_on:
+      - eureka-server
+    ports:
+      - "8080:8080"
+
+  auth-service:
+    build: ./service-auth
+    container_name: auth-service
+    depends_on:
+      - rabbitmq
+      - eureka-server
+
+  menu-service:
+    build: ./service-menu
+    container_name: menu-service
+    depends_on:
+      - rabbitmq
+      - eureka-server
+
+  order-service:
+    build: ./service-order
+    container_name: order-service
+    depends_on:
+      - rabbitmq
+      - eureka-server
+
+  payment-service:
+    build: ./service-payment
+    container_name: payment-service
+    depends_on:
+      - rabbitmq
+      - eureka-server
+
+  inventory-service:
+    build: ./service-inventory
+    container_name: inventory-service
+    depends_on:
+      - rabbitmq
+      - eureka-server
+
+  notification-service:
+    build: ./service-notification
+    container_name: notification-service
+    depends_on:
+      - rabbitmq
+      - eureka-server
+
+volumes:
+  postgres_data:
